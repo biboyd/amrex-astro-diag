@@ -71,6 +71,9 @@ void main_main()
     gvarnames.push_back("del");
     gvarnames.push_back("del_ad");
     gvarnames.push_back("del_ledoux");
+    gvarnames.push_back("chi_T");
+    gvarnames.push_back("chi_rho");
+    gvarnames.push_back("H_p");
 
     // interpret the boundary conditions
 
@@ -301,6 +304,9 @@ void main_main()
 
                             ga(i,j,k,0) = (dT / dp) * (P(i,j,k) / T(i,j,k));
 
+                            // scale height -1 / (dlnP/dt)
+                            Real rpos = std::sqrt(xpos*xpos + ypos*ypos + zpos*zpos);
+                            ga(i, j, k, 5) = (-2.0_rt * rpos * P(i,j,k))/dp;
                         } else {
                             ga(i,j,k,0) = 0.0;
                         }
@@ -319,6 +325,10 @@ void main_main()
                 eos(eos_input_rt, eos_state);
 
                 Real chi_T = eos_state.dpdT * eos_state.T / eos_state.p;
+                Real chi_rho = eos_state.dpdr * eos_state.rho / eos_state.p;
+
+                ga(i,j,k,3) = chi_T;
+                ga(i,j,k,4) = chi_rho;
 
                 ga(i,j,k,1) = eos_state.p * chi_T / (eos_state.gam1 * eos_state.rho * eos_state.T * eos_state.cv);
 
