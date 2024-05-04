@@ -6,7 +6,8 @@ DEBUG = FALSE
 DIM = 2
 
 COMP = g++
-FCOMP = gfortran
+
+BL_NO_FORT = TRUE
 
 USE_MPI = FALSE
 USE_OMP = FALSE
