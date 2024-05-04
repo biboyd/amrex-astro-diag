@@ -329,7 +329,7 @@ void main_main()
 
                 // Mixing-length heat flux
                 // ga(i,j,k,1) = rho * cp * temp * pow(vel, 3) / (Q * g * Hp);
-                //ga(i,j,k,1) = pow(rho,2) * cp * temp * pow(vel,3) / (Q * pres); // doesnt require g
+                //ga(i,j,k,1) = pow(rho,2) * cp * temp * pow(vel,3) / (Q * pres); // doesn't require g
                 ga(i,j,k,1) = pow(rho,2) * cp * temp * pow(std::abs(vel), 3) / (Q * pres); // using absolute value of velocity
 
                 // Kinetic flux
