@@ -84,7 +84,7 @@ void main_main()
     varnames = pf.varNames();
 
     // find variable indices
-    // We want: 
+    // We want:
     // density, temperature, pressure, species
     // vertical velocity, temperature perturbation
     // we will assume here that the species are contiguous, so we will find
@@ -325,7 +325,7 @@ void main_main()
                 //Real Hp = -pres/(rho*g) // g is negative
 
                 // Convective heat flux
-                ga(i,j,k,0) = rho * cp * vel * delT; 
+                ga(i,j,k,0) = rho * cp * vel * delT;
 
                 // Mixing-length heat flux
                 // ga(i,j,k,1) = rho * cp * temp * pow(vel, 3) / (Q * g * Hp);
@@ -335,7 +335,7 @@ void main_main()
                 // Kinetic flux
                 ga(i,j,k,2) = rho * pow(vel,3);
 
-                // Radiative flux 
+                // Radiative flux
                 // conductivity is k = 4*a*c*T^3/(kap*rho)
                 // see Microphysics/conductivity/stellar/actual_conductivity.H
                 ga(i,j,k,3) = -eos_state.conductivity * dT_dr;

@@ -275,7 +275,7 @@ void main_main()
                         }
 
                     } else if (ndims == 2) {
-                        // r is from x and y 
+                        // r is from x and y
                         Real dp = (xpos / dx[0]) * (P(i+1,j,k) - P(i-1,j,k))
                                 + (ypos / dx[1]) * (P(i,j+1,k) - P(i,j-1,k));
 
@@ -292,12 +292,12 @@ void main_main()
                        // r is from x, y, and z
                         Real dp = (xpos / dx[0]) * (P(i+1,j,k) - P(i-1,j,k))
                                 + (ypos / dx[1]) * (P(i,j+1,k) - P(i,j-1,k))
-                                + (zpos / dx[2]) * (P(i,j,k+1) - P(i,j,k-1)); 
+                                + (zpos / dx[2]) * (P(i,j,k+1) - P(i,j,k-1));
 
                         if (dp != 0.0) {
                             Real dT = (xpos / dx[0]) * (T(i+1,j,k) - T(i-1,j,k))
                                     + (ypos / dx[1]) * (T(i,j+1,k) - T(i,j-1,k))
-                                    + (zpos / dx[2]) * (T(i,j,k+1) - T(i,j,k-1)); 
+                                    + (zpos / dx[2]) * (T(i,j,k+1) - T(i,j,k-1));
 
                             ga(i,j,k,0) = (dT / dp) * (P(i,j,k) / T(i,j,k));
 
@@ -408,9 +408,9 @@ void main_main()
                         lnPalt_minus = std::log(eos_state.p);
 
                     } else if (ndims ==2 ) {
-                        // r is made of x and y 
+                        // r is made of x and y
 
-                        // actual  
+                        // actual
                         lnP_plus = (xpos / dx[0]) * std::log(P(i+1,j,k))
                                  + (ypos / dx[1]) * std::log(P(i,j+1,k));
 
@@ -418,7 +418,7 @@ void main_main()
                                   + (ypos / dx[1]) * std::log(P(i,j-1,k));
 
                         //alternate
-                        //plus - x 
+                        //plus - x
                         for (int n = 0; n < NumSpec; ++n) {
                             eos_state.xn[n] = X(i+1,j,k,n);
                         }
@@ -432,7 +432,7 @@ void main_main()
                         eos(eos_input_rt, eos_state);
                         lnPalt_plus += (ypos / dx[1]) * std::log(eos_state.p);
 
-                        //minus - x 
+                        //minus - x
                         for (int n = 0; n < NumSpec; ++n) {
                             eos_state.xn[n] = X(i-1,j,k,n);
                         }
@@ -447,9 +447,9 @@ void main_main()
                         lnPalt_minus += (ypos / dx[1]) * std::log(eos_state.p);
 
                     } else {
-                        // r is made of x, y and z 
+                        // r is made of x, y and z
 
-                        // actual  
+                        // actual
                         lnP_plus = (xpos / dx[0]) * std::log(P(i+1,j,k))
                                  + (ypos / dx[1]) * std::log(P(i,j+1,k))
                                  + (zpos / dx[2]) * std::log(P(i,j,k+1));
@@ -459,7 +459,7 @@ void main_main()
                                   + (zpos / dx[2]) * std::log(P(i,j,k-1));
 
                         //alternate
-                        //plus - x 
+                        //plus - x
                         for (int n = 0; n < NumSpec; ++n) {
                             eos_state.xn[n] = X(i+1,j,k,n);
                         }
@@ -480,7 +480,7 @@ void main_main()
                         eos(eos_input_rt, eos_state);
                         lnPalt_plus += (zpos / dx[2]) * std::log(eos_state.p);
 
-                        //minus - x 
+                        //minus - x
                         for (int n = 0; n < NumSpec; ++n) {
                             eos_state.xn[n] = X(i-1,j,k,n);
                         }
