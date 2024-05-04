@@ -45,11 +45,6 @@ int main(int argc, char* argv[])
     int fine_level = pf.finestLevel();
     const int dim = pf.spaceDim();
 
-    // get the index bounds and dx.
-
-    auto problo = pf.probLo();
-
-
     // find variable indices -- we want density, temperature, and species.
     // we will assume here that the species are contiguous, so we will find
     // the index of the first species
@@ -67,8 +62,6 @@ int main(int argc, char* argv[])
     // is covered by data on a finer level.
 
     for (int ilev = 0; ilev <= fine_level; ++ilev) {
-
-        Array<Real, AMREX_SPACEDIM> dx_level = pf.cellSize(ilev);
 
         if (ilev < fine_level) {
             IntVect ratio{pf.refRatio(ilev)};
