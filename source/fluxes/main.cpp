@@ -97,7 +97,7 @@ void main_main()
     int spec_comp = get_spec_index(var_names_pf);
     int dT_comp = get_dT_index(var_names_pf);
 
-    int vcomp{-1};
+    int v_comp{-1};
     if (ndims == 2) {
         v_comp = get_vy_index(var_names_pf);
     } else if (ndims == 3) {
