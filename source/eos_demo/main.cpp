@@ -47,13 +47,7 @@ int main(int argc, char* argv[])
 
     // get the index bounds and dx.
 
-    Box domain = pf.probDomain(fine_level);
-    int coord = pf.coordSys();
-
-    auto dx = pf.cellSize(fine_level);
-
     auto problo = pf.probLo();
-    auto probhi = pf.probHi();
 
 
     // find variable indices -- we want density, temperature, and species.
@@ -106,11 +100,6 @@ int main(int argc, char* argv[])
 
                                 // compute the coordinate of the current zone
 
-                                Array<Real,AMREX_SPACEDIM> p
-                                    = {AMREX_D_DECL(problo[0]+static_cast<Real>(i+0.5)*dx_level[0],
-                                                    problo[1]+static_cast<Real>(j+0.5)*dx_level[1],
-                                                    problo[2]+static_cast<Real>(k+0.5)*dx_level[2])};
-
                                 eos_t eos_state;
 
                                 eos_state.rho = fab(i,j,k,dens_comp);
@@ -146,11 +135,6 @@ int main(int argc, char* argv[])
                     for (int k = lo.z; k <= hi.z; ++k) {
                         for (int j = lo.y; j <= hi.y; ++j) {
                             for (int i = lo.x; i <= hi.x; ++i) {
-
-                                Array<Real,AMREX_SPACEDIM> p
-                                    = {AMREX_D_DECL(problo[0]+static_cast<Real>(i+0.5)*dx_level[0],
-                                                    problo[1]+static_cast<Real>(j+0.5)*dx_level[1],
-                                                    problo[2]+static_cast<Real>(k+0.5)*dx_level[2])};
 
                                 eos_t eos_state;
 
