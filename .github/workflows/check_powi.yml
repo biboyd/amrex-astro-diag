@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  check-ifdefs:
+  check-powi:
     runs-on: ubuntu-latest
 
     steps:
