@@ -42,20 +42,20 @@ jobs:
       - name: Compile convective_grad
         run: |
           cd source/convective_grad
-          make USE_MPI=FALSE USE_CLANG_TIDY=TRUE CLANG_TIDY=clang-tidy-17 CLANG_TIDY_WARN_ERROR=TRUE -j 4
+          make USE_MPI=FALSE USE_CLANG_TIDY=TRUE CLANG_TIDY=clang-tidy-17 CLANG_TIDY_WARN_ERROR=TRUE CLANG_TIDY_IGNORE_SOURCES="${MICROPHYSICS_HOME} ${AMREX_HOME}" -j 4
 
       - name: Compile eos_demo
         run: |
           cd source/eos_demo
-          make USE_MPI=FALSE USE_CLANG_TIDY=TRUE CLANG_TIDY=clang-tidy-17 CLANG_TIDY_WARN_ERROR=TRUE -j 4
+          make USE_MPI=FALSE USE_CLANG_TIDY=TRUE CLANG_TIDY=clang-tidy-17 CLANG_TIDY_WARN_ERROR=TRUE CLANG_TIDY_IGNORE_SOURCES="${MICROPHYSICS_HOME} ${AMREX_HOME}" -j 4
 
       - name: Compile fluxes
         run: |
           cd source/fluxes
-          make USE_MPI=FALSE USE_CLANG_TIDY=TRUE CLANG_TIDY=clang-tidy-17 CLANG_TIDY_WARN_ERROR=TRUE -j 4
+          make USE_MPI=FALSE USE_CLANG_TIDY=TRUE CLANG_TIDY=clang-tidy-17 CLANG_TIDY_WARN_ERROR=TRUE CLANG_TIDY_IGNORE_SOURCES="${MICROPHYSICS_HOME} ${AMREX_HOME}" -j 4
 
       - name: Compile max_enuc
         run: |
           cd source/max_enuc
-          make USE_MPI=FALSE USE_CLANG_TIDY=TRUE CLANG_TIDY=clang-tidy-17 CLANG_TIDY_WARN_ERROR=TRUE -j 4
+          make USE_MPI=FALSE USE_CLANG_TIDY=TRUE CLANG_TIDY=clang-tidy-17 CLANG_TIDY_WARN_ERROR=TRUE CLANG_TIDY_IGNORE_SOURCES="${MICROPHYSICS_HOME} ${AMREX_HOME}" -j 4
 
