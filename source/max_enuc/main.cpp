@@ -4,7 +4,6 @@
 #include <AMReX_MultiFabUtil.H>
 #include <AMReX_ParallelDescriptor.H>
 #include <limits>
-#include <iterator>
 #include <fstream>
 #include <cmath>
 #include <iterator>
@@ -38,8 +37,6 @@ void main_main()
         return;
     }
 
-    int ntime = narg;
-
     const std::string& filename = amrex::get_command_argument(farg);
 
     PlotFileData pf(filename);
@@ -48,7 +45,7 @@ void main_main()
 
     // we need rho, T, X, and enuc
 
-    auto ienuc = std::distance(var_names_pf.cbegin(), std::find(var_names_pf.cbegin(), var_names_pf.cend(), "enuc"));
+    auto ienuc = static_cast<int>(std::distance(var_names_pf.cbegin(), std::find(var_names_pf.cbegin(), var_names_pf.cend(), "enuc")));
 
     int fine_level = pf.finestLevel();
 
