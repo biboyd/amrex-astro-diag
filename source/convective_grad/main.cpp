@@ -23,7 +23,6 @@ using namespace amrex;
 
 void main_main()
 {
-    const int narg = amrex::command_argument_count();
 
     std::string pltfile(diag_rp::plotfile);
 
@@ -110,7 +109,7 @@ void main_main()
 
         // output MultiFab
 
-        gmf[ilev].define(pf.boxArray(ilev), pf.DistributionMap(ilev), gvarnames.size(), 0);
+        gmf[ilev].define(pf.boxArray(ilev), pf.DistributionMap(ilev), static_cast<int>(gvarnames.size()), 0);
 
         Vector<BCRec> bcr{bcr_default};
         auto is_per = is_periodic;
