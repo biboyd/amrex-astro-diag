@@ -31,7 +31,7 @@ get_vy_index(const std::vector<std::string>& var_names_pf) {
     if (idx == var_names_pf.cend()) {
         amrex::Error("Error: could not find vely component");
     }
-    return std::distance(var_names_pf.cbegin(), idx);
+    return static_cast<int>(std::distance(var_names_pf.cbegin(), idx));
 }
 
 inline int
@@ -41,7 +41,7 @@ get_vz_index(const std::vector<std::string>& var_names_pf) {
     if (idx == var_names_pf.cend()) {
         amrex::Error("Error: could not find velz component");
     }
-    return std::distance(var_names_pf.cbegin(), idx);
+    return static_cast<int>(std::distance(var_names_pf.cbegin(), idx));
 }
 
 inline int
@@ -51,12 +51,11 @@ get_dT_index(const std::vector<std::string>& var_names_pf) {
     if (idx == var_names_pf.cend()) {
         amrex::Error("Error: could not find tpert component");
     }
-    return std::distance(var_names_pf.cbegin(), idx);
+    return static_cast<int>(std::distance(var_names_pf.cbegin(), idx));
 }
 
 void main_main()
 {
-    const int narg = amrex::command_argument_count();
 
     std::string pltfile(diag_rp::plotfile);
 
@@ -84,7 +83,7 @@ void main_main()
     varnames = pf.varNames();
 
     // find variable indices
-    // We want: 
+    // We want:
     // density, temperature, pressure, species
     // vertical velocity, temperature perturbation
     // we will assume here that the species are contiguous, so we will find
@@ -98,10 +97,12 @@ void main_main()
     int spec_comp = get_spec_index(var_names_pf);
     int dT_comp = get_dT_index(var_names_pf);
 
-    int v_comp = get_vy_index(var_names_pf);
-    if (ndims == 3) {
+    int v_comp{-1};
+    if (ndims == 2) {
+        v_comp = get_vy_index(var_names_pf);
+    } else if (ndims == 3) {
         // z is the vertical
-        int v_comp = get_vz_index(var_names_pf);
+       v_comp = get_vz_index(var_names_pf);
     }
 
     // create the variable names we will derive and store in the output
@@ -140,7 +141,7 @@ void main_main()
 
         // output MultiFab
 
-        gmf[ilev].define(pf.boxArray(ilev), pf.DistributionMap(ilev), gvarnames.size(), 0);
+        gmf[ilev].define(pf.boxArray(ilev), pf.DistributionMap(ilev), static_cast<int>(gvarnames.size()), 0);
 
         Vector<BCRec> bcr{bcr_default};
         auto is_per = is_periodic;
@@ -325,17 +326,17 @@ void main_main()
                 //Real Hp = -pres/(rho*g) // g is negative
 
                 // Convective heat flux
-                ga(i,j,k,0) = rho * cp * vel * delT; 
+                ga(i,j,k,0) = rho * cp * vel * delT;
 
                 // Mixing-length heat flux
                 // ga(i,j,k,1) = rho * cp * temp * pow(vel, 3) / (Q * g * Hp);
-                //ga(i,j,k,1) = pow(rho,2) * cp * temp * pow(vel,3) / (Q * pres); // doesnt require g
+                //ga(i,j,k,1) = pow(rho,2) * cp * temp * pow(vel,3) / (Q * pres); // doesn't require g
                 ga(i,j,k,1) = pow(rho,2) * cp * temp * pow(std::abs(vel), 3) / (Q * pres); // using absolute value of velocity
 
                 // Kinetic flux
                 ga(i,j,k,2) = rho * pow(vel,3);
 
-                // Radiative flux 
+                // Radiative flux
                 // conductivity is k = 4*a*c*T^3/(kap*rho)
                 // see Microphysics/conductivity/stellar/actual_conductivity.H
                 ga(i,j,k,3) = -eos_state.conductivity * dT_dr;

@@ -45,17 +45,6 @@ int main(int argc, char* argv[])
     int fine_level = pf.finestLevel();
     const int dim = pf.spaceDim();
 
-    // get the index bounds and dx.
-
-    Box domain = pf.probDomain(fine_level);
-    int coord = pf.coordSys();
-
-    auto dx = pf.cellSize(fine_level);
-
-    auto problo = pf.probLo();
-    auto probhi = pf.probHi();
-
-
     // find variable indices -- we want density, temperature, and species.
     // we will assume here that the species are contiguous, so we will find
     // the index of the first species
@@ -73,8 +62,6 @@ int main(int argc, char* argv[])
     // is covered by data on a finer level.
 
     for (int ilev = 0; ilev <= fine_level; ++ilev) {
-
-        Array<Real, AMREX_SPACEDIM> dx_level = pf.cellSize(ilev);
 
         if (ilev < fine_level) {
             IntVect ratio{pf.refRatio(ilev)};
@@ -105,11 +92,6 @@ int main(int argc, char* argv[])
                                 //if (m(i,j,k) == 0) { // not covered by fine
 
                                 // compute the coordinate of the current zone
-
-                                Array<Real,AMREX_SPACEDIM> p
-                                    = {AMREX_D_DECL(problo[0]+static_cast<Real>(i+0.5)*dx_level[0],
-                                                    problo[1]+static_cast<Real>(j+0.5)*dx_level[1],
-                                                    problo[2]+static_cast<Real>(k+0.5)*dx_level[2])};
 
                                 eos_t eos_state;
 
@@ -146,11 +128,6 @@ int main(int argc, char* argv[])
                     for (int k = lo.z; k <= hi.z; ++k) {
                         for (int j = lo.y; j <= hi.y; ++j) {
                             for (int i = lo.x; i <= hi.x; ++i) {
-
-                                Array<Real,AMREX_SPACEDIM> p
-                                    = {AMREX_D_DECL(problo[0]+static_cast<Real>(i+0.5)*dx_level[0],
-                                                    problo[1]+static_cast<Real>(j+0.5)*dx_level[1],
-                                                    problo[2]+static_cast<Real>(k+0.5)*dx_level[2])};
 
                                 eos_t eos_state;
 
