@@ -24,7 +24,7 @@ using namespace amrex;
 void main_main()
 {
 
-    std::string pltfile(diag_rp::plotfile);
+    std::string pltfile(plotfile);
 
     if (pltfile.empty()) {
         std::cout << "no plotfile specified" << std::endl;
@@ -62,7 +62,29 @@ void main_main()
     int dens_comp = get_dens_index(var_names_pf);
     int temp_comp = get_temp_index(var_names_pf);
     int pres_comp = get_pres_index(var_names_pf);
-    int spec_comp = get_spec_index(var_names_pf);
+
+    Vector<int> my_spec_idx(NumSpec, -1); //in network order. holds plotfile index.
+    //find first spec indice and fill match array
+    int spec_comp = -1;
+    for (int n=0; n < var_names_pf.size(); ++n){
+       if (var_names_pf[n][0] == 'X'){
+          if (spec_comp < 0){
+             spec_comp = n;
+          }
+          for (int comp=0; comp < NumSpec; ++comp){
+             std::stringstream comp_name;
+             comp_name << "X(" << short_spec_names_cxx[comp] << ")";
+             if (var_names_pf[n] == comp_name.str()){
+                my_spec_idx[comp] = n - spec_comp;
+             }
+          }
+       }
+    }
+    //sanity check by printing things out.
+    for (int comp=0; comp < NumSpec; ++comp){
+        std::cout << var_names_pf[spec_comp+my_spec_idx[comp]] << " " << short_spec_names_cxx[comp] << std::endl;
+    }
+
     // create the variable names we will derive and store in the output
     // file
 
@@ -94,7 +116,7 @@ void main_main()
     auto const probLo = pf.probLo();
     auto const probHi = pf.probHi();
 
-    if (diag_rp::spherical){
+    if (spherical){
         for (int idim = 0; idim < AMREX_SPACEDIM; ++idim){
             center[idim] = 0.5_rt * (probHi[idim] - probLo[idim]);
         }
@@ -223,7 +245,7 @@ void main_main()
 
                 // calc position if spherical
                 Real xpos, ypos, zpos;
-                if (diag_rp::spherical){
+                if (spherical){
                     xpos = probLo[0] + dx[0] * (Real(i) + 0.5_rt) - center[0];
                     ypos = probLo[1] + dx[1] * (Real(j) + 0.5_rt) - center[1];
                     zpos = probLo[2] + dx[2] * (Real(k) + 0.5_rt) - center[2];
@@ -232,7 +254,7 @@ void main_main()
                 // first dlog T / dlog P actual -- we assume that the last
                 // dimension is the vertical (plane-parallel)
 
-                if (!diag_rp::spherical) {
+                if (!spherical) {
 
                     if (ndims == 1) {
                         // x is the vertical
@@ -313,7 +335,7 @@ void main_main()
                 eos_state.rho = fab(i,j,k,dens_comp);
                 eos_state.T = fab(i,j,k,temp_comp);
                 for (int n = 0; n < NumSpec; ++n) {
-                    eos_state.xn[n] = X(i,j,k,n);
+                    eos_state.xn[n] = X(i,j,k,my_spec_idx[n]);
                 }
                 eos(eos_input_rt, eos_state);
 
@@ -332,21 +354,21 @@ void main_main()
                 Real lnPalt_plus{0.0};  // pressure with "above" species
                 Real lnPalt_minus{0.0};  // pressure with "below" species
 
-                if (! diag_rp::spherical){
+                if (! spherical){
 
                     if (ndims == 1) {
                         // x is the vertical
 
                         lnP_plus = std::log(P(i+1,j,k));
                         for (int n = 0; n < NumSpec; ++n) {
-                            eos_state.xn[n] = X(i+1,j,k,n);
+                            eos_state.xn[n] = X(i+1,j,k,my_spec_idx[n]);
                         }
                         eos(eos_input_rt, eos_state);
                         lnPalt_plus = std::log(eos_state.p);
 
                         lnP_minus = std::log(P(i-1,j,k));
                         for (int n = 0; n < NumSpec; ++n) {
-                            eos_state.xn[n] = X(i-1,j,k,n);
+                            eos_state.xn[n] = X(i-1,j,k,my_spec_idx[n]);
                         }
                         eos(eos_input_rt, eos_state);
                         lnPalt_minus = std::log(eos_state.p);
@@ -356,14 +378,14 @@ void main_main()
 
                         lnP_plus = std::log(P(i,j+1,k));
                         for (int n = 0; n < NumSpec; ++n) {
-                            eos_state.xn[n] = X(i,j+1,k,n);
+                            eos_state.xn[n] = X(i,j+1,k,my_spec_idx[n]);
                         }
                         eos(eos_input_rt, eos_state);
                         lnPalt_plus = std::log(eos_state.p);
 
                         lnP_minus = std::log(P(i,j-1,k));
                         for (int n = 0; n < NumSpec; ++n) {
-                            eos_state.xn[n] = X(i,j-1,k,n);
+                            eos_state.xn[n] = X(i,j-1,k,my_spec_idx[n]);
                         }
                         eos(eos_input_rt, eos_state);
                         lnPalt_minus = std::log(eos_state.p);
@@ -373,14 +395,14 @@ void main_main()
 
                         lnP_plus = std::log(P(i,j,k+1));
                         for (int n = 0; n < NumSpec; ++n) {
-                            eos_state.xn[n] = X(i,j,k+1,n);
+                            eos_state.xn[n] = X(i,j,k+1,my_spec_idx[n]);
                         }
                         eos(eos_input_rt, eos_state);
                         lnPalt_plus = std::log(eos_state.p);
 
                         lnP_minus = std::log(P(i,j,k-1));
                         for (int n = 0; n < NumSpec; ++n) {
-                            eos_state.xn[n] = X(i,j,k-1,n);
+                            eos_state.xn[n] = X(i,j,k-1,my_spec_idx[n]);
                         }
                         eos(eos_input_rt, eos_state);
                         lnPalt_minus = std::log(eos_state.p);
@@ -394,14 +416,14 @@ void main_main()
 
                         lnP_plus = std::log(P(i+1,j,k));
                         for (int n = 0; n < NumSpec; ++n) {
-                            eos_state.xn[n] = X(i+1,j,k,n);
+                            eos_state.xn[n] = X(i+1,j,k,my_spec_idx[n]);
                         }
                         eos(eos_input_rt, eos_state);
                         lnPalt_plus = std::log(eos_state.p);
 
                         lnP_minus = std::log(P(i-1,j,k));
                         for (int n = 0; n < NumSpec; ++n) {
-                            eos_state.xn[n] = X(i-1,j,k,n);
+                            eos_state.xn[n] = X(i-1,j,k,my_spec_idx[n]);
                         }
                         eos(eos_input_rt, eos_state);
                         lnPalt_minus = std::log(eos_state.p);
@@ -419,28 +441,28 @@ void main_main()
                         //alternate
                         //plus - x
                         for (int n = 0; n < NumSpec; ++n) {
-                            eos_state.xn[n] = X(i+1,j,k,n);
+                            eos_state.xn[n] = X(i+1,j,k,my_spec_idx[n]);
                         }
                         eos(eos_input_rt, eos_state);
                         lnPalt_plus += (xpos / dx[0]) * std::log(eos_state.p);
 
                         //plus - y
                         for (int n = 0; n < NumSpec; ++n) {
-                            eos_state.xn[n] = X(i,j+1,k,n);
+                            eos_state.xn[n] = X(i,j+1,k,my_spec_idx[n]);
                         }
                         eos(eos_input_rt, eos_state);
                         lnPalt_plus += (ypos / dx[1]) * std::log(eos_state.p);
 
                         //minus - x
                         for (int n = 0; n < NumSpec; ++n) {
-                            eos_state.xn[n] = X(i-1,j,k,n);
+                            eos_state.xn[n] = X(i-1,j,k,my_spec_idx[n]);
                         }
                         eos(eos_input_rt, eos_state);
                         lnPalt_minus += (xpos / dx[0]) * std::log(eos_state.p);
 
                         //minus - y
                         for (int n = 0; n < NumSpec; ++n) {
-                            eos_state.xn[n] = X(i,j-1,k,n);
+                            eos_state.xn[n] = X(i,j-1,k,my_spec_idx[n]);
                         }
                         eos(eos_input_rt, eos_state);
                         lnPalt_minus += (ypos / dx[1]) * std::log(eos_state.p);
@@ -460,42 +482,42 @@ void main_main()
                         //alternate
                         //plus - x
                         for (int n = 0; n < NumSpec; ++n) {
-                            eos_state.xn[n] = X(i+1,j,k,n);
+                            eos_state.xn[n] = X(i+1,j,k,my_spec_idx[n]);
                         }
                         eos(eos_input_rt, eos_state);
                         lnPalt_plus += (xpos / dx[0]) * std::log(eos_state.p);
 
                         //plus - y
                         for (int n = 0; n < NumSpec; ++n) {
-                            eos_state.xn[n] = X(i,j+1,k,n);
+                            eos_state.xn[n] = X(i,j+1,k,my_spec_idx[n]);
                         }
                         eos(eos_input_rt, eos_state);
                         lnPalt_plus += (ypos / dx[1]) * std::log(eos_state.p);
 
                         //plus - z
                         for (int n = 0; n < NumSpec; ++n) {
-                            eos_state.xn[n] = X(i,j,k+1,n);
+                            eos_state.xn[n] = X(i,j,k+1,my_spec_idx[n]);
                         }
                         eos(eos_input_rt, eos_state);
                         lnPalt_plus += (zpos / dx[2]) * std::log(eos_state.p);
 
                         //minus - x
                         for (int n = 0; n < NumSpec; ++n) {
-                            eos_state.xn[n] = X(i-1,j,k,n);
+                            eos_state.xn[n] = X(i-1,j,k,my_spec_idx[n]);
                         }
                         eos(eos_input_rt, eos_state);
                         lnPalt_minus += (xpos / dx[0]) * std::log(eos_state.p);
 
                         //minus - y
                         for (int n = 0; n < NumSpec; ++n) {
-                            eos_state.xn[n] = X(i,j-1,k,n);
+                            eos_state.xn[n] = X(i,j-1,k,my_spec_idx[n]);
                         }
                         eos(eos_input_rt, eos_state);
                         lnPalt_minus += (ypos / dx[1]) * std::log(eos_state.p);
 
                         //minus - z
                         for (int n = 0; n < NumSpec; ++n) {
-                            eos_state.xn[n] = X(i,j,k-1,n);
+                            eos_state.xn[n] = X(i,j,k-1,my_spec_idx[n]);
                         }
                         eos(eos_input_rt, eos_state);
                         lnPalt_minus += (zpos / dx[2]) * std::log(eos_state.p);
@@ -542,7 +564,7 @@ int main (int argc, char* argv[])
 
     // initialize C++ Microphysics
 
-    eos_init(diag_rp::small_temp, diag_rp::small_dens);
+    eos_init(small_temp, small_dens);
     network_init();
 
     main_main();
