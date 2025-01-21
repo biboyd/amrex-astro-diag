@@ -89,7 +89,7 @@ void get_nu_losses() {
     out_varnames.push_back("thermal_nu_loss");
        
     // init the rhs. reaction stuff
-    init_tabular();
+    //init_tabular();
 
     for (int ilev = pf.finestLevel(); ilev >= 0; --ilev) {
         // read plotfile data
@@ -100,9 +100,9 @@ void get_nu_losses() {
 
         const MultiFab mf = pf.get(ilev);
         const MultiFab temp_mf = pf.get(ilev, varnames[temp_comp]);
-        const MultiFab pi_mf = pf.get(ilev, varnames[pres_comp]);
+        const MultiFab press_mf = pf.get(ilev, varnames[pres_comp]);
         const MultiFab rho_mf = pf.get(ilev, varnames[rho_comp]);
-        const MultiFab spec_mf = pf.get(ilev, varnames[spec_comp]);
+        //const MultiFab spec_mf = pf.get(ilev, varnames[spec_comp]);
 
         // define new mf with 5 componenets
         // 2 rates, 2 nu energy rate, 1 thermal energy rate
@@ -122,9 +122,9 @@ void get_nu_losses() {
           
             // load arrays
             Array4<const Real> const& temp_arr = temp_mf.const_array(mfi);
-            Array4<const Real> const& pres_arr = pi_mf.const_array(mfi);
+            Array4<const Real> const& pres_arr = press_mf.const_array(mfi);
             Array4<const Real> const& rho_arr = rho_mf.const_array(mfi);
-            Array4<const Real> const& X_arr = spec_mf.const_array(mfi, NumSpec);
+            Array4<const Real> const& X_arr = mf.const_array(mfi, spec_comp);
             Array4<Real> const& new_arr = new_mfs[ilev].array(mfi);
 
             // loop over all cells
@@ -174,8 +174,8 @@ void get_nu_losses() {
 
                 //save values
                 new_arr(i, j, k, 0) = rho_arr(i, j, k);
-                new_arr(i, j, k, 1) = burn_state.xn[ina23];
-                new_arr(i, j, k, 2) = burn_state.xn[ine23];
+                new_arr(i, j, k, 1) = X_arr(i, j, k, ina23); 
+                new_arr(i, j, k, 2) = X_arr(i, j, k, ine23);
                 new_arr(i, j, k, 3) = xr_ecap;
                 new_arr(i, j, k, 4) = xr_beta;
                 new_arr(i, j, k, 5) = specific_energy_ecap;
