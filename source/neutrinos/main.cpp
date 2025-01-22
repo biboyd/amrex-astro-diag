@@ -152,16 +152,25 @@ void get_nu_losses() {
                 amrex::Real rhoy = burn_state.rho * burn_state.y_e;
 
 
+#ifndef SKIP_ECAP
                 tabular_evaluate(j_Na23_Ne23_meta, j_Na23_Ne23_rhoy, j_Na23_Ne23_temp, j_Na23_Ne23_data,
                                   rhoy, burn_state.T, rate, drate_dt, edot_nu, edot_gamma);
                 Real r_ecap = rate;
                 Real specific_energy_ecap = C::Legacy::n_A * burn_state.xn[ina23]/23 * (edot_nu + edot_gamma);
+#else
+                Real r_ecap = 0.;
+                Real specific_energy_ecap = 0.;
+#endif
 
+#ifndef SKIP_BETA 
                 tabular_evaluate(j_Ne23_Na23_meta, j_Ne23_Na23_rhoy, j_Ne23_Na23_temp, j_Ne23_Na23_data,
                                   rhoy, burn_state.T, rate, drate_dt, edot_nu, edot_gamma);
                 Real r_beta = rate;
                 Real specific_energy_beta = C::Legacy::n_A * burn_state.xn[ine23]/23 * (edot_nu + edot_gamma);
-
+#else
+                Real r_beta = 0.;
+                Real specific_energy_beta = 0.;
+#endif
                 Real xr_ecap = burn_state.xn[ina23] * r_ecap;
                 Real xr_beta = burn_state.xn[ine23] * r_beta;
 
