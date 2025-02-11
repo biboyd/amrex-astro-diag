@@ -78,14 +78,81 @@ void get_nu_losses() {
     // create the variable names we will derive and store in the output
     // file
 
+    //keep track number of variables for each pairing
+    int nA21{0}, nA23{0}, nA25{0};
+
     Vector<std::string> out_varnames;
     out_varnames.push_back("rho");
+
+//Add A21 nuclei if either is included. 
+//Add rates only if react is included
+#ifndef SKIP_A21_BETA 
+    out_varnames.push_back("X(Ne21)");
+    out_varnames.push_back("X(F21)");
+    out_varnames.push_back("A21_beta_decay_rate");   
+    out_varnames.push_back("A21_beta_decay_nu_loss");
+    nA21=4;
+#ifndef SKIP_A21_ECAP
+    out_varnames.push_back("A21_electron_capture_rate");
+    out_varnames.push_back("A21_electron_capture_nu_loss");
+    nA21=6;
+#endif
+#else
+#ifndef SKIP_A21_ECAP
+    out_varnames.push_back("X(Ne21)");
+    out_varnames.push_back("X(F21)");
+    out_varnames.push_back("A21_electron_capture_rate");
+    out_varnames.push_back("A21_electron_capture_nu_loss");
+    nA21=4;
+#endif
+#endif
+
+//Add A23 nuclei if either is included. 
+//Add rates only if react is included
+#ifndef SKIP_A23_BETA 
+    out_varnames.push_back("X(Na23)");
+    out_varnames.push_back("X(Ne23)");
+    out_varnames.push_back("A23_beta_decay_rate");   
+    out_varnames.push_back("A23_beta_decay_nu_loss");
+    nA23=4;
+#ifndef SKIP_A23_ECAP
+    out_varnames.push_back("A23_electron_capture_rate");
+    out_varnames.push_back("A23_electron_capture_nu_loss");
+    nA23=6;
+#endif
+#else
+#ifndef SKIP_A23_ECAP
     out_varnames.push_back("X(Na23)");
     out_varnames.push_back("X(Ne23)");
     out_varnames.push_back("A23_electron_capture_rate");
-    out_varnames.push_back("A23_beta_decay_rate");   
     out_varnames.push_back("A23_electron_capture_nu_loss");
-    out_varnames.push_back("A23_beta_decay_nu_loss");
+    nA23=4;
+#endif
+#endif
+
+//Add A23 nuclei if either is included. 
+//Add rates only if react is included
+#ifndef SKIP_A25_BETA 
+    out_varnames.push_back("X(Mg25)");
+    out_varnames.push_back("X(Na25)");
+    out_varnames.push_back("A25_beta_decay_rate");   
+    out_varnames.push_back("A25_beta_decay_nu_loss");
+    nA25=4;
+#ifndef SKIP_A25_ECAP
+    out_varnames.push_back("A25_electron_capture_rate");
+    out_varnames.push_back("A25_electron_capture_nu_loss");
+    nA25=6;
+#endif
+#else
+#ifndef SKIP_A25_ECAP
+    out_varnames.push_back("X(Mg25)");
+    out_varnames.push_back("X(Na25)");
+    out_varnames.push_back("A25_electron_capture_rate");
+    out_varnames.push_back("A25_electron_capture_nu_loss");
+    nA25=4;
+#endif
+#endif
+
     out_varnames.push_back("thermal_nu_loss");
        
     // init the rhs. reaction stuff
@@ -142,8 +209,6 @@ void get_nu_losses() {
                 }
                 eos(eos_input_rt, eos_state); // use rt instead?
      
-                int ine23 = network_spec_index("neon-23");
-                int ina23 = network_spec_index("sodium-23");
              
                 composition(eos_state);
                 eos_to_burn(eos_state, burn_state);
@@ -151,28 +216,90 @@ void get_nu_losses() {
                 amrex::Real rate, drate_dt, edot_nu, edot_gamma;
                 amrex::Real rhoy = burn_state.rho * burn_state.y_e;
 
+                int ine21, if21, ine23, ina23, img25, ina25;
 
-#ifndef SKIP_ECAP
+                // do A=21
+#ifndef SKIP_A21_ECAP
+                if21 = network_spec_index("fluorine-21");
+                ine21 = network_spec_index("neon-21");
+                tabular_evaluate(j_Ne21_F21_meta, j_Ne21_F21_rhoy, j_Ne21_F21_temp, j_Ne21_F21_data,
+                                  rhoy, burn_state.T, rate, drate_dt, edot_nu, edot_gamma);
+                Real r_ecap = rate;
+                Real specific_energy_ecap = C::Legacy::n_A * burn_state.xn[ine21]/21 * (edot_nu + edot_gamma);
+                Real xr_ecap = burn_state.xn[ine21] * r_ecap;
+
+                new_arr(i, j, k, 3) = xr_ecap;
+                new_arr(i, j, k, 4) = specific_energy_ecap;
+#endif
+
+#ifndef SKIP_A21_BETA 
+                if21 = network_spec_index("fluorine-21");
+                ine21 = network_spec_index("neon-21");
+                tabular_evaluate(j_F21_Ne21_meta, j_F21_Ne21_rhoy, j_F21_Ne21_temp, j_F21_Ne21_data,
+                                  rhoy, burn_state.T, rate, drate_dt, edot_nu, edot_gamma);
+                Real r_beta = rate;
+                Real specific_energy_beta = C::Legacy::n_A * burn_state.xn[if21]/21 * (edot_nu + edot_gamma);
+                Real xr_beta = burn_state.xn[if21] * r_beta;
+
+                new_arr(i, j, k, 1 + nA21 - 2) = xr_beta;
+                new_arr(i, j, k, 1 + nA21 - 1) = specific_energy_beta;
+#endif
+
+
+
+                // Do A=23
+#ifndef SKIP_A23_ECAP
+                ine23 = network_spec_index("neon-23");
+                ina23 = network_spec_index("sodium-23");
                 tabular_evaluate(j_Na23_Ne23_meta, j_Na23_Ne23_rhoy, j_Na23_Ne23_temp, j_Na23_Ne23_data,
                                   rhoy, burn_state.T, rate, drate_dt, edot_nu, edot_gamma);
                 Real r_ecap = rate;
                 Real specific_energy_ecap = C::Legacy::n_A * burn_state.xn[ina23]/23 * (edot_nu + edot_gamma);
-#else
-                Real r_ecap = 0.;
-                Real specific_energy_ecap = 0.;
+                Real xr_ecap = burn_state.xn[ina23] * r_ecap;
+
+                new_arr(i, j, k, nA21+3) = xr_ecap;
+                new_arr(i, j, k, nA21+4) = specific_energy_ecap;
 #endif
 
-#ifndef SKIP_BETA 
+#ifndef SKIP_A23_BETA 
+                ine23 = network_spec_index("neon-23");
+                ina23 = network_spec_index("sodium-23");
                 tabular_evaluate(j_Ne23_Na23_meta, j_Ne23_Na23_rhoy, j_Ne23_Na23_temp, j_Ne23_Na23_data,
                                   rhoy, burn_state.T, rate, drate_dt, edot_nu, edot_gamma);
                 Real r_beta = rate;
                 Real specific_energy_beta = C::Legacy::n_A * burn_state.xn[ine23]/23 * (edot_nu + edot_gamma);
-#else
-                Real r_beta = 0.;
-                Real specific_energy_beta = 0.;
-#endif
-                Real xr_ecap = burn_state.xn[ina23] * r_ecap;
                 Real xr_beta = burn_state.xn[ine23] * r_beta;
+
+                new_arr(i, j, k, 1 + nA21 + nA23 - 2) = xr_beta;
+                new_arr(i, j, k, 1 + nA21 + nA23 - 1) = specific_energy_beta;
+#endif
+
+                // Do A=25
+#ifndef SKIP_A25_ECAP
+                ina25 = network_spec_index("sodium-25");
+                img25 = network_spec_index("magnesium-25");
+                tabular_evaluate(j_Mg25_Na25_meta, j_Mg25_Na25_rhoy, j_Mg25_Na25_temp, j_Mg25_Na25_data,
+                                  rhoy, burn_state.T, rate, drate_dt, edot_nu, edot_gamma);
+                Real r_ecap = rate;
+                Real specific_energy_ecap = C::Legacy::n_A * burn_state.xn[img25]/25 * (edot_nu + edot_gamma);
+                Real xr_ecap = burn_state.xn[img25] * r_ecap;
+
+                new_arr(i, j, k, nA21+nA23+3) = xr_ecap;
+                new_arr(i, j, k, nA21+nA23+4) = specific_energy_ecap;
+#endif
+
+#ifndef SKIP_A25_BETA 
+                ina25 = network_spec_index("sodium-25");
+                img25 = network_spec_index("magnesium-25");
+                tabular_evaluate(j_Na25_Mg25_meta, j_Na25_Mg25_rhoy, j_Na25_Mg25_temp, j_Na25_Mg25_data,
+                                  rhoy, burn_state.T, rate, drate_dt, edot_nu, edot_gamma);
+                Real r_beta = rate;
+                Real specific_energy_beta = C::Legacy::n_A * burn_state.xn[ina25]/25 * (edot_nu + edot_gamma);
+                Real xr_beta = burn_state.xn[ina25] * r_beta;
+
+                new_arr(i, j, k, 1+nA21+nA23+nA25-2) = xr_beta;
+                new_arr(i, j, k, 1+nA21+nA23+nA25-1) = specific_energy_beta;
+#endif
 
 
                 //thermal neutrino loss   
@@ -183,13 +310,21 @@ void get_nu_losses() {
 
                 //save values
                 new_arr(i, j, k, 0) = rho_arr(i, j, k);
-                new_arr(i, j, k, 1) = X_arr(i, j, k, ina23); 
-                new_arr(i, j, k, 2) = X_arr(i, j, k, ine23);
-                new_arr(i, j, k, 3) = xr_ecap;
-                new_arr(i, j, k, 4) = xr_beta;
-                new_arr(i, j, k, 5) = specific_energy_ecap;
-                new_arr(i, j, k, 6) = specific_energy_beta;
-                new_arr(i, j, k, 7) = sneut;
+                if (nA21){
+                    new_arr(i, j, k, 1) = X_arr(i, j, k, ina23); 
+                    new_arr(i, j, k, 2) = X_arr(i, j, k, ine23);
+                }
+                if (nA23){
+                    new_arr(i, j, k, nA21+1) = X_arr(i, j, k, ine21); 
+                    new_arr(i, j, k, nA21+2) = X_arr(i, j, k, if21);
+                }
+                if (nA25){
+                    new_arr(i, j, k, nA21+nA23+1) = X_arr(i, j, k, img25); 
+                    new_arr(i, j, k, nA21+nA23+2) = X_arr(i, j, k, ina25);
+                }
+
+
+                new_arr(i, j, k, nA21+nA23+nA25) = sneut;
             });
         }
     }
