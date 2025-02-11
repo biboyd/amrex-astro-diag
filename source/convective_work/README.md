@@ -1,35 +1,33 @@
 # Convective gradients
 
-This tool constructs the various convective gradients.  It is built
-off of the AMReX fgradient tool.  Note: unlike fgradient, we don't
-allow different BCs per variable, but instead just use hoextrap.
+This tool constructs gradients to estimate work done by 
+convection moving electrons up a chemical gradient.  It is built
+off of convective_grad
 
-The three gradients that are evaluated are:
-- The true temperature gradient in the model:
-$$\nabla=\left(\frac{d\ln T}{d\ln P}\right)$$
-- The adiabatic gradient:
-$$\nabla_{\rm ad}=\left(\frac{d\ln T}{d\ln P}\right)_S=\frac{\chi_T}{\Gamma_1c_V}\frac{P}{\rho T}$$
-- The Ledoux gradient:
-$$\nabla_{\rm L}=\nabla_{\rm ad}+B$$
-For the composition term $B$, we use MESA's formulation (Paxton et al. 2013, Equation 8), but with a centered difference instead. At some grid point $k$ with pressure $P_k=P(\rho_k,T_k,X_k)$:
-$$B_k=-\frac{1}{\chi_T}\frac{\ln P(\rho_k,T_k,X_{k+1})-\ln P(\rho_k,T_k,X_{k-1})}{\ln P_{k+1}-\ln P_{k-1}}$$
-(The numerator terms are the local pressure evaluated with the composition of the above/below grid points.)
+The gradients/values that are evaluated are:
+- `("boxlib", "eta_e")` The electron degeneracy parameter $\eta$ which is defined as below. $\mu$ is the electron chemical potential, $m_e$ is the electron mass, $k_B$ is the boltzmann constant. units dimensionless erg/erg:
+$$\eta= (\mu - m_e c^2)/k_B T$$
 
-For spherical geometries, derivatives are constructed radially from x,y,z like so for $dT/dP$:
+- `("boxlib", "d_chem_e")` The radial gradient of the electron chemical $\mu$, as derived from $\eta$ above. Units = erg/cm:
+$$ \frac{d \mu}{d r}$$
 
-$$
-\frac{dT}{dP} = \frac{dT/dr}{dP/dr} = \left( \frac{x}{r} \frac{dT}{dx} + \frac{y}{r} \frac{dT}{dy} + \frac{z}{r} \frac{dT}{dz}\right) \/ \left(\frac{x}{r} \frac{dP}{dx} + \frac{y}{r} \frac{dP}{dy} + \frac{z}{r} \frac{dP}{dz} \right)
-$$
+- `("boxlib", "flux_e")` The Radial Flux density of electrons. With $\mathrm{N_A}$ is Avogadro number ie number of nucleons per gram, $Y_e$ is electron fraction number of e- per nucleon, $U_r$ is the radial velocity.  units # e- /cm^2:
+$$f_e = \mathrm{N_A} \rho Y_e U_r$$
+
+- `("boxlib", "eps_conv")` A somewhat motivated quantity of estimating the work done by convection in moving the electrons from the edge to the center (ie up the chemical gradient). Using the flux value described above and the electron chemical potential gradient. units erg / cm^3:
+
+$$\epsilon_{\mathrm{conv}} = f_e * \frac{d \mu}{dr}$$
+
+Derivatives are constructed radially from x,y,z like so for $dT/dr$:
+
+$$\frac{dT}{dr}  = \left( \frac{x}{r} \frac{dT}{dx} + \frac{y}{r} \frac{dT}{dy} + \frac{z}{r} \frac{dT}{dz}\right)$$
 
 
 To build, do:
 
 ```
-make DIM=2
+make
 ```
-
-changing the `DIM` line to match the dimension of your plotfile.
-
 It is also important that the network you build with matches
 the one used for generating the plotfile.  This is set via
 the `NETWORK_DIR` parameter in the `GNUmakefile`.
@@ -39,13 +37,5 @@ you specify the plotfile via `diag.plotfile`, either in an inputs
 file or on the command line, e.g.:
 
 ```
-./fconvgrad.gnu.ex diag.plotfile=plt00000
+./fconvwork.gnu.ex diag.plotfile=plt00000
 ```
-
-For spherical geometries, include `diag.spherical=1` at runtime, eg.:
-
-
-```
-./fconvgrad.gnu.ex diag.plotfile=plt00000 diag.spherical=1
-```
-
