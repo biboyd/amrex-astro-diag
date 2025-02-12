@@ -224,12 +224,9 @@ void get_nu_losses() {
                 ine21 = network_spec_index("neon-21");
                 tabular_evaluate(j_Ne21_F21_meta, j_Ne21_F21_rhoy, j_Ne21_F21_temp, j_Ne21_F21_data,
                                   rhoy, burn_state.T, rate, drate_dt, edot_nu, edot_gamma);
-                Real r_ecap = rate;
-                Real specific_energy_ecap = C::Legacy::n_A * burn_state.xn[ine21]/21 * (edot_nu + edot_gamma);
-                Real xr_ecap = burn_state.xn[ine21] * r_ecap;
 
-                new_arr(i, j, k, 3) = xr_ecap;
-                new_arr(i, j, k, 4) = specific_energy_ecap;
+                new_arr(i, j, k, 3) = burn_state.xn[ine21] * rate;
+                new_arr(i, j, k, 4) = C::Legacy::n_A * burn_state.xn[ine21]/21 * (edot_nu + edot_gamma);
 #endif
 
 #ifndef SKIP_A21_BETA 
@@ -237,12 +234,9 @@ void get_nu_losses() {
                 ine21 = network_spec_index("neon-21");
                 tabular_evaluate(j_F21_Ne21_meta, j_F21_Ne21_rhoy, j_F21_Ne21_temp, j_F21_Ne21_data,
                                   rhoy, burn_state.T, rate, drate_dt, edot_nu, edot_gamma);
-                Real r_beta = rate;
-                Real specific_energy_beta = C::Legacy::n_A * burn_state.xn[if21]/21 * (edot_nu + edot_gamma);
-                Real xr_beta = burn_state.xn[if21] * r_beta;
 
-                new_arr(i, j, k, 1 + nA21 - 2) = xr_beta;
-                new_arr(i, j, k, 1 + nA21 - 1) = specific_energy_beta;
+                new_arr(i, j, k, 1 + nA21 - 2) = burn_state.xn[if21] * rate;
+                new_arr(i, j, k, 1 + nA21 - 1) = C::Legacy::n_A * burn_state.xn[if21]/21 * (edot_nu + edot_gamma);
 #endif
 
 
@@ -253,12 +247,9 @@ void get_nu_losses() {
                 ina23 = network_spec_index("sodium-23");
                 tabular_evaluate(j_Na23_Ne23_meta, j_Na23_Ne23_rhoy, j_Na23_Ne23_temp, j_Na23_Ne23_data,
                                   rhoy, burn_state.T, rate, drate_dt, edot_nu, edot_gamma);
-                Real r_ecap = rate;
-                Real specific_energy_ecap = C::Legacy::n_A * burn_state.xn[ina23]/23 * (edot_nu + edot_gamma);
-                Real xr_ecap = burn_state.xn[ina23] * r_ecap;
 
-                new_arr(i, j, k, nA21+3) = xr_ecap;
-                new_arr(i, j, k, nA21+4) = specific_energy_ecap;
+                new_arr(i, j, k, nA21+3) = burn_state.xn[ina23] * rate;
+                new_arr(i, j, k, nA21+4) = C::Legacy::n_A * burn_state.xn[ina23]/23 * (edot_nu + edot_gamma);
 #endif
 
 #ifndef SKIP_A23_BETA 
@@ -266,12 +257,9 @@ void get_nu_losses() {
                 ina23 = network_spec_index("sodium-23");
                 tabular_evaluate(j_Ne23_Na23_meta, j_Ne23_Na23_rhoy, j_Ne23_Na23_temp, j_Ne23_Na23_data,
                                   rhoy, burn_state.T, rate, drate_dt, edot_nu, edot_gamma);
-                Real r_beta = rate;
-                Real specific_energy_beta = C::Legacy::n_A * burn_state.xn[ine23]/23 * (edot_nu + edot_gamma);
-                Real xr_beta = burn_state.xn[ine23] * r_beta;
-
-                new_arr(i, j, k, 1 + nA21 + nA23 - 2) = xr_beta;
-                new_arr(i, j, k, 1 + nA21 + nA23 - 1) = specific_energy_beta;
+                
+                new_arr(i, j, k, 1 + nA21 + nA23 - 2) = burn_state.xn[ine23] * rate;
+                new_arr(i, j, k, 1 + nA21 + nA23 - 1) = C::Legacy::n_A * burn_state.xn[ine23]/23 * (edot_nu + edot_gamma);
 #endif
 
                 // Do A=25
@@ -280,12 +268,9 @@ void get_nu_losses() {
                 img25 = network_spec_index("magnesium-25");
                 tabular_evaluate(j_Mg25_Na25_meta, j_Mg25_Na25_rhoy, j_Mg25_Na25_temp, j_Mg25_Na25_data,
                                   rhoy, burn_state.T, rate, drate_dt, edot_nu, edot_gamma);
-                Real r_ecap = rate;
-                Real specific_energy_ecap = C::Legacy::n_A * burn_state.xn[img25]/25 * (edot_nu + edot_gamma);
-                Real xr_ecap = burn_state.xn[img25] * r_ecap;
 
-                new_arr(i, j, k, nA21+nA23+3) = xr_ecap;
-                new_arr(i, j, k, nA21+nA23+4) = specific_energy_ecap;
+                new_arr(i, j, k, nA21+nA23+3) = burn_state.xn[img25] * rate;
+                new_arr(i, j, k, nA21+nA23+4) = C::Legacy::n_A * burn_state.xn[img25]/25 * (edot_nu + edot_gamma);
 #endif
 
 #ifndef SKIP_A25_BETA 
@@ -293,12 +278,9 @@ void get_nu_losses() {
                 img25 = network_spec_index("magnesium-25");
                 tabular_evaluate(j_Na25_Mg25_meta, j_Na25_Mg25_rhoy, j_Na25_Mg25_temp, j_Na25_Mg25_data,
                                   rhoy, burn_state.T, rate, drate_dt, edot_nu, edot_gamma);
-                Real r_beta = rate;
-                Real specific_energy_beta = C::Legacy::n_A * burn_state.xn[ina25]/25 * (edot_nu + edot_gamma);
-                Real xr_beta = burn_state.xn[ina25] * r_beta;
 
-                new_arr(i, j, k, 1+nA21+nA23+nA25-2) = xr_beta;
-                new_arr(i, j, k, 1+nA21+nA23+nA25-1) = specific_energy_beta;
+                new_arr(i, j, k, 1+nA21+nA23+nA25-2) = burn_state.xn[ina25] * rate;
+                new_arr(i, j, k, 1+nA21+nA23+nA25-1) = C::Legacy::n_A * burn_state.xn[ina25]/25 * (edot_nu + edot_gamma);
 #endif
 
 
