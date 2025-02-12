@@ -15,36 +15,49 @@ USE_OMP = FALSE
 USE_REACT = TRUE
 USE_CXX_EOS = TRUE
 
-USE_ECAP = TRUE
-USE_BETA = TRUE
+DO_ECAP = TRUE
+DO_BETA = TRUE
 
 DO_A21 = FALSE
 DO_A23 = TRUE
 DO_A25 = FALSE
 
-ifeq ($(USE_ECAP), FALSE)
-  ifeq ($(DO_A21), FALSE)
+ifeq ($(DO_A21), FALSE)
+  DEFINES += -DSKIP_A21_ECAP
+  DEFINES += -DSKIP_A21_BETA
+else
+  ifeq ($(DO_ECAP), FALSE)
     DEFINES += -DSKIP_A21_ECAP
   endif
-  ifeq ($(DO_A23), FALSE)
-    DEFINES += -DSKIP_A23_ECAP
-  endif
-  ifeq ($(DO_A25), FALSE)
-    DEFINES += -DSKIP_A25_ECAP
+  ifeq ($(DO_BETA), FALSE)
+    DEFINES += -DSKIP_A21_BETA
   endif
 endif
 
-ifeq ($(USE_BETA), FALSE)
-  ifeq ($(DO_A21), FALSE)
-    DEFINES += -DSKIP_A21_BETA
+ifeq ($(DO_A23), FALSE)
+  DEFINES += -DSKIP_A23_ECAP
+  DEFINES += -DSKIP_A23_BETA
+else
+  ifeq ($(DO_ECAP), FALSE)
+    DEFINES += -DSKIP_A23_ECAP
   endif
-  ifeq ($(DO_A23), FALSE)
+  ifeq ($(DO_BETA), FALSE)
     DEFINES += -DSKIP_A23_BETA
   endif
-  ifeq ($(DO_A25), FALSE)
+endif
+
+ifeq ($(DO_A25), FALSE)
+  DEFINES += -DSKIP_A25_ECAP
+  DEFINES += -DSKIP_A25_BETA
+else
+  ifeq ($(DO_ECAP), FALSE)
+    DEFINES += -DSKIP_A25_ECAP
+  endif
+  ifeq ($(DO_BETA), FALSE)
     DEFINES += -DSKIP_A25_BETA
   endif
 endif
+
 
 MAX_ZONES := 16384
 
