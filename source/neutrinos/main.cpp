@@ -154,6 +154,8 @@ void get_nu_losses() {
 #endif
 
     out_varnames.push_back("thermal_nu_loss");
+    out_varnames.push_back("internal_energy");
+    out_varnames.push_back("eta");
        
     // init the rhs. reaction stuff
     //init_tabular();
@@ -290,6 +292,8 @@ void get_nu_losses() {
                 constexpr int do_T_derivatives = 0;
                 sneut5<do_T_derivatives>(burn_state.T, burn_state.rho, burn_state.abar, burn_state.zbar, sneut, dsneutdt, dsneutdd, dsnuda, dsnudz);
                 new_arr(i, j, k, 1+nA21+nA23+nA25) = sneut;
+                new_arr(i, j, k, 2+nA21+nA23+nA25) = eos_state.e;
+                new_arr(i, j, k, 3+nA21+nA23+nA25) = eos_state.eta;
 
                 //save values
                 new_arr(i, j, k, 0) = rho_arr(i, j, k);
