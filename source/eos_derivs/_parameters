@@ -4,5 +4,3 @@ small_temp     real         -1.e200
 small_dens     real         -1.e200
 
 plotfile       string       ""
-
-spherical 	   int          0
