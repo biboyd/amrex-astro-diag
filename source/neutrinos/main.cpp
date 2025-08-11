@@ -200,7 +200,7 @@ void get_nu_losses() {
             ParallelFor(tileBox, [=] AMREX_GPU_DEVICE(int i, int j, int k) {
 
                 // initialize EOS
-                eos_t eos_state;
+                eos_rh_t eos_state;
                 burn_t burn_state;
 
                 eos_state.T    = temp_arr(i, j, k);
@@ -209,7 +209,7 @@ void get_nu_losses() {
                 for (auto comp = 0; comp < NumSpec; ++comp) {
                     eos_state.xn[comp] = X_arr(i, j, k, comp);
                 }
-                eos(eos_input_rt, eos_state); // use rt instead?
+                eos(eos_input_rp, eos_state); // use rt instead?
      
              
                 composition(eos_state);
@@ -347,3 +347,4 @@ int main (int argc, char* argv[])
     get_nu_losses();
     amrex::Finalize();
 }
+
