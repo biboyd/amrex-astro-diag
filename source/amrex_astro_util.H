@@ -225,6 +225,38 @@ get_spec_index(const std::vector<std::string>& var_names_pf) {
     return spec_comp;
 }
 
+
+///
+/// return the index of the first species creation/descrtion rate
+/// (ie omegadot) by searching through the list of variables in the plotfile.
+///
+inline int
+get_omegadot_index(const std::vector<std::string>& var_names_pf) {
+
+
+    std::string first_name = "omegadot(" + short_spec_names_cxx[0] + ")";
+    auto idx = std::find(var_names_pf.cbegin(), var_names_pf.cend(), first_spec_name);
+    if (idx == var_names_pf.cend()) {
+        amrex::Error("Error: could not find the first species");
+    }
+    int first_comp = std::distance(var_names_pf.cbegin(), idx);
+
+    // safety check -- make sure the species in the plotfile are identical to
+    // those defined in the network we built this tool with.
+
+    for (int n = 0; n < NumSpec; ++n) {
+        std::string current_name = "omegadot(" + short_spec_names_cxx[n] + ")";
+        if (current_spec_name != var_names_pf[first_comp+n]) {
+            std::cout << current_spec_name << std::endl;
+            std::cout << var_names_pf[first_comp+n] << std::endl;
+            std::cout << "Make sure to compile with the same network as the plotfile" << std::endl;
+            std::cout << "    make NETWORK_DIR=aprox13   (for example)" << std::endl;
+            amrex::Error("Error: species don't match");
+        }
+    }
+    return first_comp;
+}
+
 #endif
 
 
