@@ -235,7 +235,7 @@ get_omegadot_index(const std::vector<std::string>& var_names_pf) {
 
 
     std::string first_name = "omegadot(" + short_spec_names_cxx[0] + ")";
-    auto idx = std::find(var_names_pf.cbegin(), var_names_pf.cend(), first_spec_name);
+    auto idx = std::find(var_names_pf.cbegin(), var_names_pf.cend(), first_name);
     if (idx == var_names_pf.cend()) {
         amrex::Error("Error: could not find the first species");
     }
@@ -246,8 +246,8 @@ get_omegadot_index(const std::vector<std::string>& var_names_pf) {
 
     for (int n = 0; n < NumSpec; ++n) {
         std::string current_name = "omegadot(" + short_spec_names_cxx[n] + ")";
-        if (current_spec_name != var_names_pf[first_comp+n]) {
-            std::cout << current_spec_name << std::endl;
+        if (current_name != var_names_pf[first_comp+n]) {
+            std::cout << current_name << std::endl;
             std::cout << var_names_pf[first_comp+n] << std::endl;
             std::cout << "Make sure to compile with the same network as the plotfile" << std::endl;
             std::cout << "    make NETWORK_DIR=aprox13   (for example)" << std::endl;
