@@ -62,13 +62,35 @@ void main_main()
 
     int dens_comp = get_dens_index(var_names_pf);
     int temp_comp = get_temp_index(var_names_pf);
+    int pres_comp = get_pres_index(var_names_pf);
     int spec_comp = get_spec_index(var_names_pf);
     int omegadot_comp = get_omegadot_index(var_names_pf);
-    int radvel_comp = get_radvel_index(var_names_pf); //account for no radvel and calc on the fly
+
+
+    // interpret the boundary conditions
+
+    BCRec bcr_default;
+    Array<int,AMREX_SPACEDIM> is_periodic{AMREX_D_DECL(0,0,0)};
+    IntVect ng(1);
+    for (int idim = 0; idim < AMREX_SPACEDIM; ++idim) {
+        if (idim < ndims) {
+            bcr_default.setLo(idim, BCType::hoextrapcc);
+            bcr_default.setHi(idim, BCType::hoextrapcc);
+        } else {
+            bcr_default.setLo(idim, BCType::int_dir);
+            bcr_default.setHi(idim, BCType::int_dir);
+            is_periodic[idim] = 1;
+            ng[idim] = 0;
+        }
+    }
+
+
     // create the variable names we will derive and store in the output
     // file
 
     Vector<std::string> gvarnames;
+    gvarnames.push_back("density");
+    gvarnames.push_back("temperature");
     gvarnames.push_back("internal_energy");
     gvarnames.push_back("eta_e");
     gvarnames.push_back("therm_term_h");
@@ -84,10 +106,10 @@ void main_main()
         gmf[ilev].define(pf.boxArray(ilev), pf.DistributionMap(ilev), static_cast<int>(gvarnames.size()), 0);
 
         Vector<BCRec> bcr{bcr_default};
-        auto is_per = is_periodic;
+    	
 
         Geometry vargeom(pf.probDomain(ilev), RealBox(pf.probLo(),pf.probHi()),
-                         pf.coordSys(), is_per);
+                         pf.coordSys(), is_periodic);
         geom.push_back(vargeom);
 
         PhysBCFunct<GpuBndryFuncFab<FabFillNoOp>> physbcf
@@ -104,7 +126,7 @@ void main_main()
 #ifdef AMREX_USE_OMP
 #pragma omp parallel
 #endif
-        for (MFIter mfi(temp_mf, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
+        for (MFIter mfi(lev_data_mf, TilingIfNotGPU()); mfi.isValid(); ++mfi) {
             Box const& bx = mfi.tilebox();
 
             // output storage
@@ -117,31 +139,34 @@ void main_main()
             amrex::ParallelFor(bx, [=] AMREX_GPU_DEVICE (int i, int j, int k)
             {
                 // calc eos
-                eos_t eos_state;
+                eos_extra_t eos_state;
 
                 eos_state.rho = fab(i,j,k,dens_comp);
                 eos_state.T = fab(i,j,k,temp_comp);
+                eos_state.p = fab(i,j,k,pres_comp);
                 for (int n = 0; n < NumSpec; ++n) {
                     eos_state.xn[n] = fab(i,j,k,spec_comp+n);
                 }
-                eos(eos_input_rt, eos_state);
+
+                eos(eos_input_rp, eos_state);
             	eos_xderivs_t eos_xderivs = composition_derivatives(eos_state);
 
-                //calc sum dhdx. See xhi in S in maestro eqn's
+                //calc sum dhdX. See xhi in S in maestro eqn's
                 Real therm_term = 0.;
                 for (int n = 0; n < NumSpec; ++n) {
-                    therm_term = eos_xderivs.dhdx[n] * fab(i,j,k,omegadot_comp+n);
+                    therm_term -= eos_xderivs.dhdX[n] * fab(i,j,k,omegadot_comp+n);
                 }
 
 				//calc sigma = p_T/(rho cp p_rho)
-				Real sigma = 0.;
-				sigma = eos_state.dpdT / (eos_state.rho*eos_state.cp*eos_state.dpdr);
+				Real sigma = eos_state.dpdT / (eos_state.rho*eos_state.cp*eos_state.dpdr);
 
                 //write everything out
-                ga(i, j, k, 0) = eos_state.e;
-                ga(i, j, k, 1) = eos_state.eta;
-                ga(i, j, k, 2) = therm_term;
-                ga(i, j, k, 3) = sigma;
+                ga(i, j, k, 0) = eos_state.rho;
+                ga(i, j, k, 1) = eos_state.T;
+                ga(i, j, k, 2) = eos_state.e;
+                ga(i, j, k, 3) = eos_state.eta;
+                ga(i, j, k, 4) = therm_term;
+                ga(i, j, k, 5) = sigma;
             });
         }
     }
