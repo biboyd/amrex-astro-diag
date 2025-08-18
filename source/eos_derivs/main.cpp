@@ -95,6 +95,7 @@ void main_main()
     gvarnames.push_back("eta_e");
     gvarnames.push_back("therm_term_h");
     gvarnames.push_back("sigma");
+    gvarnames.push_back("pres_term");
 
     Vector<MultiFab> gmf(nlevs);
     Vector<Geometry> geom;
@@ -153,12 +154,18 @@ void main_main()
 
                 //calc sum dhdX. See xhi in S in maestro eqn's
                 Real therm_term = 0.;
+				//calc pres term from S. sigma * cp/p_T * p_Xk* omegadot_k
+				Real pres_term = 0.;
                 for (int n = 0; n < NumSpec; ++n) {
                     therm_term -= eos_xderivs.dhdX[n] * fab(i,j,k,omegadot_comp+n);
+                    pres_term += eos_xderivs.dpdX[n] * fab(i,j,k,omegadot_comp+n);
                 }
+
+				pres_term *= eos_state.cp / eos_state.dpdT;
 
 				//calc sigma = p_T/(rho cp p_rho)
 				Real sigma = eos_state.dpdT / (eos_state.rho*eos_state.cp*eos_state.dpdr);
+
 
                 //write everything out
                 ga(i, j, k, 0) = eos_state.rho;
@@ -167,6 +174,7 @@ void main_main()
                 ga(i, j, k, 3) = eos_state.eta;
                 ga(i, j, k, 4) = therm_term;
                 ga(i, j, k, 5) = sigma;
+                ga(i, j, k, 6) = pres_term;
             });
         }
     }
