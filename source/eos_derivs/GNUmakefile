@@ -9,7 +9,7 @@ COMP = g++
 
 BL_NO_FORT = TRUE
 
-USE_MPI = FALSE
+USE_MPI = TRUE
 USE_OMP = FALSE
 
 USE_REACT = TRUE
@@ -25,7 +25,7 @@ EBASE := feosderiv
 # EOS and network
 EOS_DIR := helmholtz
 
-NETWORK_DIR := ignition_reaclib/URCA-simple
+NETWORK_DIR := ignition_reaclib/URCA-large
 #NETWORK_INPUTS := triple_alpha_plus_o.net
 
 Bpack := ./Make.package
