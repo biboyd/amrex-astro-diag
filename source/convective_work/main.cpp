@@ -68,10 +68,10 @@ void main_main()
     // file
 
     Vector<std::string> gvarnames;
-    gvarnames.push_back("eps_conv");
+    gvarnames.push_back("chem_e");
     gvarnames.push_back("d_chem_e");
-    gvarnames.push_back("eta_e");
     gvarnames.push_back("flux_e");
+    gvarnames.push_back("eps_conv");
 
     // interpret the boundary conditions
 
@@ -239,11 +239,10 @@ void main_main()
                 eos(eos_input_rt, eos_state);
 
                 //write flux and mu_e out
-                ga(i, j, k, 2) = eos_state.eta;
+                ga(i, j, k, 0) = eos_state.eta * eos_state.T * C::k_B;
 
-                //Real F_e = 4 * M_PI *rpos*rpos * C::Legacy::n_A * eos_state.rho * eos_state.y_e * fab(i,j,k,radvel_comp);
                 Real F_e = C::n_A * eos_state.rho * eos_state.y_e * fab(i,j,k,radvel_comp);
-                ga(i, j, k, 3) = F_e;
+                ga(i, j, k, 2) = F_e;
 
 
                 // Now dlog mu_e / dr actual 
@@ -251,6 +250,7 @@ void main_main()
                 Real dmu_dx{0.}, dmu_dy{0.}, dmu_dz{0.}, dmu_dr{0.}; 
 
                 //x
+                // add i+1
                 eos_state.rho = rho(i+1,j,k);
                 eos_state.T = T(i+1,j,k);
                 for (int n = 0; n < NumSpec; ++n) {
@@ -259,6 +259,7 @@ void main_main()
                 eos(eos_input_rt, eos_state);
                 dmu_dx += eos_state.eta * eos_state.T * C::k_B;
 
+                // sub i-1
                 eos_state.rho = rho(i-1,j,k);
                 eos_state.T = T(i-1,j,k);
                 for (int n = 0; n < NumSpec; ++n) {
@@ -266,9 +267,12 @@ void main_main()
                 }
                 eos(eos_input_rt, eos_state);
                 dmu_dx -= eos_state.eta * eos_state.T * C::k_B;
+
+                // div 2x
                 dmu_dx /= 2 * dx[0];
 
                 //y
+                // add j+1
                 eos_state.rho = rho(i,j+1,k);
                 eos_state.T = T(i,j+1,k);
                 for (int n = 0; n < NumSpec; ++n) {
@@ -277,6 +281,7 @@ void main_main()
                 eos(eos_input_rt, eos_state);
                 dmu_dy += eos_state.eta * eos_state.T * C::k_B;
 
+                // sub j-1
                 eos_state.rho = rho(i,j-1,k);
                 eos_state.T = T(i,j-1,k);
                 for (int n = 0; n < NumSpec; ++n) {
@@ -284,9 +289,12 @@ void main_main()
                 }
                 eos(eos_input_rt, eos_state);
                 dmu_dy -= eos_state.eta * eos_state.T * C::k_B;
+
+                // div 2y
                 dmu_dy /= 2 * dx[1];
 
                 //z
+                //add k+1
                 eos_state.rho = rho(i,j,k+1);
                 eos_state.T = T(i,j,k+1);
                 for (int n = 0; n < NumSpec; ++n) {
@@ -295,6 +303,7 @@ void main_main()
                 eos(eos_input_rt, eos_state);
                 dmu_dz += eos_state.eta * eos_state.T * C::k_B;
 
+                //sub k-1
                 eos_state.rho = rho(i,j,k-1);
                 eos_state.T = T(i,j,k-1);
                 for (int n = 0; n < NumSpec; ++n) {
@@ -302,12 +311,14 @@ void main_main()
                 }
                 eos(eos_input_rt, eos_state);
                 dmu_dz -= eos_state.eta * eos_state.T * C::k_B;
+
+                // div 2z
                 dmu_dz /= 2 * dx[2];
 
                 // r and save
                 dmu_dr = (xpos*dmu_dx + ypos*dmu_dy + zpos*dmu_dz)/rpos;
                 ga(i,j,k,1) = dmu_dr;
-                ga(i,j,k,0) = F_e * dmu_dr;
+                ga(i,j,k,3) = F_e * dmu_dr;
             });
         }
     }
