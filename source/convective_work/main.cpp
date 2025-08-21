@@ -21,6 +21,10 @@
 
 using namespace amrex;
 
+inline Real get_mu_e(eos_t& state){
+    // return electron chem potential from degeneracy param eta
+    return state.eta * C::k_B * state.T + C::m_e * C::c_light * C::c_light;
+}
 
 void main_main()
 {
@@ -239,13 +243,14 @@ void main_main()
                 eos(eos_input_rt, eos_state);
 
                 //write flux and mu_e out
-                ga(i, j, k, 0) = eos_state.eta * eos_state.T * C::k_B;
+                ga(i, j, k, 0) = get_mu_e(eos_state);
 
                 Real F_e = C::n_A * eos_state.rho * eos_state.y_e * fab(i,j,k,radvel_comp);
                 ga(i, j, k, 2) = F_e;
 
 
-                // Now dlog mu_e / dr actual 
+                // Now dlog mu_e / dr 
+                // Note: don't need m_e c^2 term b/c will cancel out
                 //dmu_dx
                 Real dmu_dx{0.}, dmu_dy{0.}, dmu_dz{0.}, dmu_dr{0.}; 
 
