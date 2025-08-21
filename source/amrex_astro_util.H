@@ -230,7 +230,6 @@ get_radvel_index(const std::vector<std::string>& var_names_pf) {
 
     auto idx = std::find(var_names_pf.cbegin(), var_names_pf.cend(), "radial_velocity");
     if (idx == var_names_pf.cend()) {
-        // for MAESTROeX, we'll default to "p0"
         idx = std::find(var_names_pf.cbegin(), var_names_pf.cend(), "radial_velocity");
         if (idx == var_names_pf.cend()) {
             amrex::Error("Error: could not find the radial velocity component. use velxyz instead");
